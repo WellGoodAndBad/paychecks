@@ -1,0 +1,36 @@
+version: '3.1'
+
+services:
+
+  db:
+    container_name: db
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./db/db_data:/var/lib/postgresql/data
+
+  fin_api:
+    image: rest_api
+    build: ./
+    command: gunicorn fin_work.wsgi:application --bind 0.0.0.0:8001
+    restart: always
+    volumes:
+      - .:/rest_api
+#    env_file:
+#      - ./.env.pr
+    expose:
+      - 8000
+    depends_on:
+      - db
+  nginx:
+    build: ./nginx
+    restart: always
+    ports:
+      - 8001:8001
+    depends_on:
+      - fin_api
+
